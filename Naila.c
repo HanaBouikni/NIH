@@ -4,9 +4,12 @@
 #include <stdbool.h>
 #define T_Bloc 300
 
+char nomFichier[] ="Audi.bin";
+
 //declaration de la structure de l'enregistrement
 
 typedef struct voiture {
+  bool efface;
  struct voiture *svt ;
     char marque[10];
     char modele[100];
@@ -15,12 +18,10 @@ typedef struct voiture {
 
 //declaration du bloc
 
- typedef struct TBloc{
-bool efface;
+typedef struct TBloc{
  voiture T[T_Bloc];//tableau d'enregistrement
 int Nb;//le nombre d'enregistrement dans le tableau
 int suiv;//le nombre de prochain bloc
-
 }TBloc;
 
 
@@ -169,7 +170,7 @@ void afficherLOF(LOF *l)//a chaque foix quand on crée un bloc on l'affiche
 
         while (j < Buffer.Nb)  // Parcourt les éléments du tableau T du bloc courant
         {
-            printf("%3d %10d \n", j, Buffer.T[j]);  // Affiche l'indice et la valeur de chaque élément du tableau
+            printf("%3d \n%10s\n %100s\n %100s\n %10d\n", j, Buffer.T[j].marque,Buffer.T[j].modele,Buffer.T[j].moteur,Buffer.T[j].reference);  // Affiche l'indice et la valeur de chaque élément du tableau
             j++;
         }
 
@@ -199,12 +200,12 @@ void afficherLOF(LOF *l)//a chaque foix quand on crée un bloc on l'affiche
              // Boucle de recherche dans les blocs du fichier
               while((*i!=-1)&&(!arret))
               {
-               lire_dir(FILE,*i,&buf);//lire le bloc i
+               lecture(FILE,*i,&buf);//lire le bloc i
                if (buf.Nb!=0)
                {
                 b=buf.Nb-1;// Indice du dernier élément dans le bloc
                
-                if ((buf.T[0] <= cle)&&(buf.T[b]>=cle ))
+                if ((buf.T[0].reference <= cle)&&(buf.T[b].reference >=cle ))
                  {
                    //rech_decho(buf.T,buf.Nb,cle,&pos,&trouv);
                     Inf=0 ;
@@ -212,14 +213,14 @@ void afficherLOF(LOF *l)//a chaque foix quand on crée un bloc on l'affiche
                     while ((*trouv==0)&&(Inf<=Sup))
                     {
                        *j=(Inf+Sup)/2;
-                       if (buf.T[*j]==cle)
+                       if (buf.T[*j].reference==cle)
                        {
                          *trouv=true;// La clé a été trouvée
                        }
                        else
                        {
                         // Mise à jour des indices pour la recherche decho
-                         if (buf.T[*j]>cle)
+                         if (buf.T[*j].reference >cle)
                          {
                             Sup=*j-1;
                          }
@@ -231,8 +232,8 @@ void afficherLOF(LOF *l)//a chaque foix quand on crée un bloc on l'affiche
                        if (*trouv==0) *j=Inf;
                        arret=true; // Arrêter la recherche dans les blocs
                      }
-                     else if ((buf.T[0]>cle)&&(Vlast<cle)) {*j=0,arret=true;}
-                     else { Vlast = buf.T[b];
+                     else if ((buf.T[0].reference >cle)&&(Vlast<cle)) {*j=0,arret=true;}
+                     else { Vlast = buf.T[b].reference;
                            *q=*i;  // Stocker l'indice du bloc courant
                            *i=buf.suiv;  // Passer au bloc suivant
                                          }
@@ -252,7 +253,7 @@ void afficherLOF(LOF *l)//a chaque foix quand on crée un bloc on l'affiche
 
                                    /***************** insertion *******************/
 
-void insertion(LOF*FILE,int cle)
+void insertion(LOF*FILE,int cle,voiture y)
 {
 
 TBloc buffer , buffer1, *new;
@@ -264,7 +265,7 @@ rech_sequentielle(FILE,cle,&i,&j,&k,&trouv);
 //si lelement n'est pas trouvé, procéder à linsertion
 
 if(!trouv) {
-  OPEN(FILE,"r+");
+  OPEN(nomFichier,'A');
 
 //lire le contenu du bloc à la position i
 
@@ -295,13 +296,13 @@ if(!trouv) {
 
         //allocation dun nouveau bloc
 
-         new =(TBloc*)malloc(sizeof(TBloc));
-        new->tab[0]=y;
+        new =(TBloc*)malloc(sizeof(TBloc));
+        new->T[0]=y;
         new->Nb=1;
 
         //relier le nouveau bloc au bloc precedent
 
-        buffer.suiv= new;
+        buffer.suiv= new.;
         i++;
 
       }
@@ -377,7 +378,7 @@ int i,j,q;
       //si la cle est trouvé
       if (trouv)
        {
-        lecture(FILLE,i,buffer);
+        lecture(FILLE,i,&buffer);
          buffer.T[i].efface=true;
          ecrire_dir(FILLE,i,&buffer);
        }
